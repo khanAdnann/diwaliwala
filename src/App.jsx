@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import FestiveBackground from './components/FestiveBackground';
+import BackgroundMusicPlayer from './components/BackgroundMusicPlayer';
 import DiyaSvg from './components/DiyaSvg';
 import Home from './pages/Home';
 
@@ -45,6 +46,7 @@ export default function App() {
       <ScrollToTop />
       <FestiveBackground />
       <Navbar />
+      <BackgroundMusicPlayer />
       <main className="flex-1 relative z-10">
         <Suspense fallback={<FestiveLoader />}>
           <Routes>

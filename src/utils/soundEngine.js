@@ -15,7 +15,17 @@ class FestiveSoundManager {
     this.musicEnabled = false;
     this.musicInterval = null;
     this.droneOscillators = [];
+    this.ytPlayer = null;
     this.listeners = new Set();
+  }
+
+  registerYouTubePlayer(playerInstance) {
+    this.ytPlayer = playerInstance;
+  }
+
+  setMusicStateFromYouTube(isPlaying) {
+    this.musicEnabled = Boolean(isPlaying);
+    this.notify();
   }
 
   initContext() {
@@ -52,6 +62,22 @@ class FestiveSoundManager {
 
   toggleMusic(forceState) {
     const next = typeof forceState === 'boolean' ? forceState : !this.musicEnabled;
+    if (this.ytPlayer && typeof this.ytPlayer.playVideo === 'function') {
+      try {
+        if (next) {
+          this.ytPlayer.unMute?.();
+          this.ytPlayer.playVideo();
+          this.musicEnabled = true;
+        } else {
+          this.ytPlayer.pauseVideo();
+          this.musicEnabled = false;
+        }
+        this.notify();
+        return this.musicEnabled;
+      } catch {
+        // Fallback to Web Audio if YT iframe blocked
+      }
+    }
     if (next) {
       this.startAmbientMusic();
     } else {
