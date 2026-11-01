@@ -7,9 +7,9 @@ import {
   Share2,
   Copy,
   Check,
-  Languages,
+  Globe,
   Palette,
-  Wand2,
+  Star,
   RefreshCw,
 } from 'lucide-react';
 import SEOHead from '../components/SEOHead';
@@ -258,7 +258,7 @@ export default function WishGenerator() {
           <div>
             <div className="flex items-center justify-between mb-2.5">
               <label className="text-xs font-bold uppercase tracking-wider text-[#FFD700] flex items-center gap-1.5">
-                <Languages className="w-4 h-4" />
+                <Globe className="w-4 h-4" />
                 <span>1. Select Greeting Language</span>
               </label>
               <span className="text-[11px] text-[#FFF4DC]/60">
@@ -451,7 +451,7 @@ export default function WishGenerator() {
                     : 'bg-[#0D0618]/70 border-[#FFD700]/30 text-[#FFF4DC]/70'
                 }`}
               >
-                <Wand2 className="w-4 h-4" />
+                <Star className="w-4 h-4" />
                 <span>{goldenEffects ? 'Golden Sparkles Enabled ✨' : 'Enable Golden Sparkles'}</span>
               </button>
             </div>

@@ -5,10 +5,10 @@ import gsap from 'gsap';
 import confetti from 'canvas-confetti';
 import {
   Sparkles,
-  Wand2,
+  Zap,
   Camera,
   Flame,
-  HeartHandshake,
+  Gift,
   Clock,
   ArrowRight,
   Share2,
@@ -30,7 +30,7 @@ const FIVE_FEATURE_CARDS = [
     badge: 'Bilingual Cards',
     description:
       'Craft personalized Hindi & English greeting cards with royal palace themes, golden mandalas, and instant PNG download or WhatsApp sharing.',
-    icon: HeartHandshake,
+    icon: Gift,
     link: '/wishes',
     cta: 'Create Greeting Card',
     accent: 'from-[#FFD700] to-[#FF8C00]',
@@ -41,7 +41,7 @@ const FIVE_FEATURE_CARDS = [
     badge: 'Instagram Story Ready',
     description:
       'See your name illuminated in glowing golden Diwali lights surrounded by ceremonial diyas, fairy garlands, and sparkling stars.',
-    icon: Wand2,
+    icon: Zap,
     link: '/name-in-lights',
     cta: 'Illuminate Your Name',
     accent: 'from-[#FF8C00] to-[#F59E0B]',

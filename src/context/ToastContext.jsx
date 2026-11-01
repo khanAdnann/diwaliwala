@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, AlertTriangle, Info, Sparkles, X } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Info, Sparkles, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
@@ -32,7 +32,7 @@ export function ToastProvider({ children }) {
         <AnimatePresence>
           {toasts.map((toast) => {
             const icons = {
-              success: <CheckCircle2 className="w-5 h-5 text-[#FFD700] shrink-0" />,
+              success: <CheckCircle className="w-5 h-5 text-[#FFD700] shrink-0" />,
               error: <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />,
               info: <Info className="w-5 h-5 text-[#FF8C00] shrink-0" />,
               festive: <Sparkles className="w-5 h-5 text-[#FFD700] shrink-0" />,

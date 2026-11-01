@@ -11,8 +11,8 @@ import {
   Share2,
   ShieldCheck,
   Sparkles,
-  RefreshCcw,
-  CloudUpload,
+  RefreshCw,
+  Cloud,
   Image as ImageIcon,
 } from 'lucide-react';
 import SEOHead from '../components/SEOHead';
@@ -429,7 +429,7 @@ export default function PhotoFrameMaker() {
                 onClick={handleResetTransform}
                 className="text-xs text-[#FFF4DC]/75 hover:text-[#FFD700] flex items-center gap-1"
               >
-                <RefreshCcw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 <span>Reset Position</span>
               </button>
             </div>
@@ -612,7 +612,7 @@ export default function PhotoFrameMaker() {
                   className="py-3 px-4 rounded-xl btn-festive-outline text-xs sm:text-sm flex items-center justify-center gap-1.5"
                   title="Optional: Upload final composition to Supabase Storage"
                 >
-                  <CloudUpload className="w-4 h-4 text-[#FFD700]" />
+                  <Cloud className="w-4 h-4 text-[#FFD700]" />
                   <span>{uploadingCloud ? 'Uploading...' : 'Opt-In Cloud Link'}</span>
                 </button>
               </div>

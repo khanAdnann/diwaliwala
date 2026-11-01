@@ -8,7 +8,7 @@ import {
   Heart,
   Flame,
   ArrowRight,
-  CheckCircle2,
+  CheckCircle,
 } from 'lucide-react';
 import SEOHead from '../components/SEOHead';
 import DiyaSvg from '../components/DiyaSvg';
@@ -157,15 +157,15 @@ export default function About() {
           </p>
           <ul className="space-y-2.5 text-xs sm:text-sm text-[#FFF4DC]/85">
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#FFD700] shrink-0" />
+              <CheckCircle className="w-4 h-4 text-[#FFD700] shrink-0" />
               <span>Private photos are never uploaded to Supabase by default.</span>
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#FFD700] shrink-0" />
+              <CheckCircle className="w-4 h-4 text-[#FFD700] shrink-0" />
               <span>Strict MIME type &amp; 8MB file size validation before canvas decoding.</span>
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#FFD700] shrink-0" />
+              <CheckCircle className="w-4 h-4 text-[#FFD700] shrink-0" />
               <span>Instant high-resolution 1080p PNG export without watermarks blocking your art.</span>
             </li>
           </ul>

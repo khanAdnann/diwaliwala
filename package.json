@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.cjs",
     "dev": "vite",
-    "build": "vite build",
+    "build": "node build.cjs",
     "preview": "node server.cjs"
   },
   "dependencies": {

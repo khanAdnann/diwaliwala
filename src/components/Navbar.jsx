@@ -7,9 +7,9 @@ import {
   Menu,
   X,
   Flame,
-  Wand2,
+  Star,
   Camera,
-  HeartHandshake,
+  Gift,
   Home,
   Info,
   Music,
@@ -22,8 +22,8 @@ import { soundManager } from '../utils/soundEngine';
 
 const NAV_ITEMS = [
   { name: 'Home', path: '/', icon: Home },
-  { name: 'Wishes', path: '/wishes', icon: HeartHandshake },
-  { name: 'Name in Lights', path: '/name-in-lights', icon: Wand2 },
+  { name: 'Wishes', path: '/wishes', icon: Gift },
+  { name: 'Name in Lights', path: '/name-in-lights', icon: Star },
   { name: 'Photo Frames', path: '/photo-frames', icon: Camera },
   { name: 'Fireworks', path: '/fireworks', icon: Flame },
   { name: 'About', path: '/about', icon: Info },

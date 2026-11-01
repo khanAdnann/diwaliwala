@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
-  Wand2,
+  Star,
   Sparkles,
   Download,
   Share2,
@@ -126,7 +126,7 @@ export default function NameInLights() {
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#29104A] border border-[#FFD700]/40 text-xs font-bold uppercase tracking-[0.2em] text-[#FFD700] mb-3">
-          <Wand2 className="w-3.5 h-3.5" />
+          <Star className="w-3.5 h-3.5" />
           <span>Instagram Story &amp; Status Art Generator</span>
         </div>
         <h1 className="font-display text-3xl sm:text-5xl font-black gold-gradient-text gold-glow-text">
