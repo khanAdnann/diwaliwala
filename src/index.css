@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #0D0618;
+  --bg-midnight: #160B2D;
+  --bg-royal: #29104A;
+  --gold-primary: #FFD700;
+  --orange-warm: #FF8C00;
+  --cream-soft: #FFF4DC;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: #0D0618;
+  color: #FFF4DC;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background: radial-gradient(ellipse at top, #29104A 0%, #160B2D 45%, #0D0618 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Custom Golden Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0618;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFD700, #FF8C00);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFD700;
+}
+
+/* Luxury Festive Utility Classes */
+@layer components {
+  .glass-card {
+    background: linear-gradient(145deg, rgba(41, 16, 74, 0.62) 0%, rgba(22, 11, 45, 0.78) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 215, 0, 0.22);
+    box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 244, 220, 0.12);
+  }
+
+  .glass-card-hover {
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-card-hover:hover {
+    border-color: rgba(255, 215, 0, 0.55);
+    box-shadow: 0 16px 48px -8px rgba(255, 140, 0, 0.25), 0 0 25px rgba(255, 215, 0, 0.18), inset 0 1px 0 0 rgba(255, 215, 0, 0.25);
+    transform: translateY(-4px);
+  }
+
+  .gold-gradient-text {
+    background: linear-gradient(135deg, #FFF4DC 0%, #FFD700 45%, #FF8C00 85%, #FFF4DC 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .gold-glow-text {
+    text-shadow: 0 0 18px rgba(255, 215, 0, 0.45), 0 0 36px rgba(255, 140, 0, 0.25);
+  }
+
+  .btn-royal-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+    color: #0D0618;
+    font-weight: 700;
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+  }
+
+  .btn-royal-gold:hover {
+    box-shadow: 0 0 34px rgba(255, 215, 0, 0.7), 0 6px 20px rgba(255, 140, 0, 0.45);
+    transform: translateY(-2px) scale(1.01);
+  }
+
+  .btn-royal-gold:active {
+    transform: translateY(0) scale(0.99);
+  }
+
+  .btn-festive-outline {
+    background: rgba(41, 16, 74, 0.55);
+    border: 1.5px solid rgba(255, 215, 0, 0.55);
+    color: #FFF4DC;
+    font-weight: 600;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.12);
+    transition: all 0.3s ease;
+  }
+
+  .btn-festive-outline:hover {
+    background: rgba(255, 215, 0, 0.14);
+    border-color: #FFD700;
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.32);
+    transform: translateY(-2px);
+  }
+
+  .ornate-border {
+    position: relative;
+  }
+
+  .ornate-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.65), rgba(255,140,0,0.2), rgba(255,244,220,0.5), rgba(255,215,0,0.65));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* Lantern & Diya Keyframe Animations */
+@keyframes floatLantern {
+  0%, 100% {
+    transform: translateY(0px) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(1.5deg);
+  }
+}
+
+.animate-lantern {
+  animation: floatLantern 7s ease-in-out infinite;
+}
+
+@keyframes diyaFlame {
+  0%, 100% {
+    transform: scaleX(1) scaleY(1) rotate(-1deg);
+    filter: drop-shadow(0 0 10px #FFD700) drop-shadow(0 0 22px #FF8C00);
+  }
+  33% {
+    transform: scaleX(0.93) scaleY(1.07) rotate(1.5deg);
+    filter: drop-shadow(0 0 14px #FFF4DC) drop-shadow(0 0 28px #FFD700);
+  }
+  66% {
+    transform: scaleX(1.05) scaleY(0.96) rotate(-1.5deg);
+    filter: drop-shadow(0 0 12px #FFD700) drop-shadow(0 0 20px #FF8C00);
+  }
+}
+
+.diya-flame-anim {
+  transform-origin: 50% 85%;
+  animation: diyaFlame 2.2s ease-in-out infinite;
+}
+

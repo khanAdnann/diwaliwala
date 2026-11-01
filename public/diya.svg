@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#FFF4DC" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#FFD700" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#FF8C00" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="60" y1="14" x2="60" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF4DC"/>
+      <stop offset="50%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </linearGradient>
+    <linearGradient id="bowl" x1="20" y1="62" x2="100" y2="102" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="45%" stop-color="#FF8C00"/>
+      <stop offset="100%" stop-color="#8B3A00"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="44" r="40" fill="url(#glow)"/>
+  <path d="M60 15C60 15 44 36 44 48C44 57 51.2 64 60 64C68.8 64 76 57 76 48C76 36 60 15 60 15Z" fill="url(#flame)"/>
+  <path d="M60 28C60 28 51 41 51 49C51 54 55 58 60 58C65 58 69 54 69 49C69 41 60 28 60 28Z" fill="#FFF4DC"/>
+  <path d="M16 64C16 64 38 72 60 72C82 72 104 64 104 64C100 88 82 102 60 102C38 102 20 88 16 64Z" fill="url(#bowl)" stroke="#FFD700" stroke-width="3"/>
+  <path d="M26 74C38 79 82 79 94 74" stroke="#FFF4DC" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+  <ellipse cx="60" cy="103" rx="26" ry="5" fill="#FFD700" fill-opacity="0.45"/>
+</svg>
+
