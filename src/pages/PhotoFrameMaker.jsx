@@ -24,6 +24,7 @@ import {
   sanitizeUserText,
 } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
+import { soundManager } from '../utils/soundEngine';
 
 const SIX_FRAME_TEMPLATES = [
   {
@@ -98,7 +99,6 @@ export default function PhotoFrameMaker() {
     trackAnalyticsEvent('page_view_photo_frames', '/photo-frames');
   }, []);
 
-  // Re-render photo frame composition whenever state changes
   const redrawComposition = useCallback(() => {
     if (!canvasRef.current) return;
     renderPhotoFrameCanvas(canvasRef.current, {
@@ -129,7 +129,6 @@ export default function PhotoFrameMaker() {
     redrawComposition();
   }, [redrawComposition]);
 
-  // Strict Client-Side Image File Validation & Loading
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -173,10 +172,11 @@ export default function PhotoFrameMaker() {
         setRotation(0);
         setOffset({ x: 0, y: 0 });
         setCloudShareUrl(null);
+        soundManager.playDiyaLightSound();
         trackAnalyticsEvent('photo_frame_local_upload', '/photo-frames');
         addToast({
           title: 'Photo Loaded Privately! 🛡️',
-          message: 'Drag on the canvas to position your photo and use the sliders to zoom or crop.',
+          message: 'Drag on the frame preview to position your photo and use sliders below to zoom.',
           type: 'success',
         });
       };
@@ -192,7 +192,6 @@ export default function PhotoFrameMaker() {
     reader.readAsDataURL(file);
   };
 
-  // Generate an instant sample festive portrait so users can test without uploading a personal file
   const handleLoadSamplePortrait = () => {
     const offscreen = document.createElement('canvas');
     offscreen.width = 800;
@@ -206,7 +205,6 @@ export default function PhotoFrameMaker() {
     octx.fillStyle = grad;
     octx.fillRect(0, 0, 800, 800);
 
-    // Sunburst rays
     octx.strokeStyle = 'rgba(255, 244, 220, 0.22)';
     octx.lineWidth = 4;
     for (let i = 0; i < 24; i += 1) {
@@ -217,7 +215,6 @@ export default function PhotoFrameMaker() {
       octx.stroke();
     }
 
-    // Silhouette festive family celebration illustration
     octx.fillStyle = '#FFF4DC';
     octx.font = '700 46px "Cinzel Decorative", serif';
     octx.textAlign = 'center';
@@ -233,16 +230,16 @@ export default function PhotoFrameMaker() {
       setZoom(1.05);
       setRotation(0);
       setOffset({ x: 0, y: 0 });
+      soundManager.playDiyaLightSound();
       addToast({
         title: 'Sample Portrait Loaded! ✨',
-        message: 'Try dragging the canvas or switching between all 6 Diwali frames.',
+        message: 'Try dragging the preview or switching between all 6 Diwali frames.',
         type: 'festive',
       });
     };
     sampleImg.src = offscreen.toDataURL('image/png');
   };
 
-  // Pointer Drag Handlers on Canvas
   const handlePointerDown = (e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -275,6 +272,7 @@ export default function PhotoFrameMaker() {
     redrawComposition();
     const dataUrl = canvasRef.current.toDataURL('image/png');
     downloadDataUrlAsPng(dataUrl, `diwaliwala-framed-photo-${Date.now()}.png`);
+    soundManager.playCelebrationChime();
     trackAnalyticsEvent('download_photo_frame', '/photo-frames');
 
     confetti({
@@ -315,7 +313,7 @@ export default function PhotoFrameMaker() {
   };
 
   return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-x-hidden">
       <SEOHead
         title="Diwali Photo Frame Maker — 6 Royal Frames with Drag, Zoom & Crop"
         description="Upload your photo and frame it with 6 royal Diwali photo frames, marigold garlands, glowing diyas, and custom greetings. 100% client-side privacy."
@@ -323,41 +321,144 @@ export default function PhotoFrameMaker() {
       />
 
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#29104A] border border-[#FFD700]/40 text-xs font-bold uppercase tracking-[0.2em] text-[#FFD700] mb-3">
-          <Camera className="w-3.5 h-3.5" />
+      <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-10 px-1">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#29104A] border border-[#FFD700]/40 text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-[#FFD700] mb-3">
+          <Camera className="w-3.5 h-3.5 shrink-0" />
           <span>100% Client-Side Private Photo Studio</span>
         </div>
-        <h1 className="font-display text-3xl sm:text-5xl font-black gold-gradient-text gold-glow-text">
+        <h1 className="font-display text-2xl sm:text-4xl lg:text-5xl font-black gold-gradient-text gold-glow-text leading-tight">
           Royal Diwali Photo Frame Maker 🖼️
         </h1>
-        <p className="mt-3 text-sm sm:text-base text-[#FFF4DC]/80">
+        <p className="mt-2.5 text-xs sm:text-base text-[#FFF4DC]/80">
           Upload your photo, choose from 6 ornate Indian festive frames, drag to position, zoom &amp;
           crop, and download your HD composition.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN: Editor Controls (7 cols) */}
+      {/* Responsive Two-Column Layout:
+          - Mobile/Tablet (<1024px): Single column, Photo Frame Preview FIRST (order-1), Editing Controls SECOND (order-2)
+          - Desktop (>=1024px): Two columns, Editing Controls LEFT 40% (lg:w-[42%] lg:order-1), Frame Preview RIGHT 60% (lg:w-[58%] lg:order-2)
+      */}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start w-full">
+        {/* PREVIEW SECTION: Order 1 on Mobile, Order 2 (Right 60%) on Desktop */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-7 glass-card ornate-border rounded-3xl p-6 sm:p-8 space-y-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="order-1 lg:order-2 w-full lg:w-[58%] lg:sticky lg:top-24"
+        >
+          <div className="glass-card ornate-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-xl mx-auto lg:max-w-none">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#FFD700] flex items-center gap-1.5 truncate">
+                <Sparkles className="w-4 h-4 shrink-0" />
+                <span className="truncate">Live Frame Preview (Drag Photo)</span>
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-[#FFF4DC]/65 shrink-0">
+                1080×1080 HD
+              </span>
+            </div>
+
+            {/* Centered Square Frame Container - Never overflows horizontally */}
+            <div
+              onMouseDown={handlePointerDown}
+              onMouseMove={handlePointerMove}
+              onMouseUp={handlePointerUp}
+              onMouseLeave={handlePointerUp}
+              onTouchStart={handlePointerDown}
+              onTouchMove={handlePointerMove}
+              onTouchEnd={handlePointerUp}
+              className={`relative w-full max-w-[360px] sm:max-w-[460px] lg:max-w-[520px] mx-auto rounded-2xl overflow-hidden border-2 border-[#FFD700]/55 bg-[#0D0618] aspect-square select-none touch-none shadow-[0_0_35px_rgba(0,0,0,0.75)] ${
+                isDragging ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+            >
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full object-contain block pointer-events-none"
+                aria-label="Diwali Framed Photo Canvas"
+              />
+            </div>
+
+            {/* Quick Mobile Upload Bar right below preview so users can immediately upload */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-2.5 lg:hidden">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-3 px-4 rounded-xl btn-royal-gold text-xs sm:text-sm flex items-center justify-center gap-2"
+              >
+                <Upload className="w-4 h-4 shrink-0" />
+                <span>{imageName ? 'Change Photo' : 'Upload Your Photo'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleLoadSamplePortrait}
+                className="w-full py-2.5 px-4 rounded-xl btn-festive-outline text-xs flex items-center justify-center gap-1.5"
+              >
+                <ImageIcon className="w-4 h-4 text-[#FFD700] shrink-0" />
+                <span>Try Sample Portrait</span>
+              </button>
+            </div>
+
+            {/* Export & Share Buttons */}
+            <div className="mt-4 sm:mt-5 space-y-2.5">
+              <button
+                type="button"
+                onClick={handleDownloadFramedPhoto}
+                className="w-full py-3.5 px-5 rounded-xl sm:rounded-2xl btn-royal-gold text-sm sm:text-base flex items-center justify-center gap-2"
+              >
+                <Download className="w-5 h-5 shrink-0" />
+                <span>Download Framed Photo (PNG)</span>
+              </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackAnalyticsEvent('whatsapp_share_frame', '/photo-frames');
+                    shareViaWhatsApp(
+                      `🪔✨ *${greetingText}* — ${subText}${
+                        cloudShareUrl ? `\n🖼️ View my framed photo: ${cloudShareUrl}` : ''
+                      }\n\n🌟 Create your own Diwali Photo Frame on DiwaliWala: https://diwaliwala.vercel.app/photo-frames`
+                    );
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/60 text-[#FFF4DC] font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
+                >
+                  <Share2 className="w-4 h-4 text-[#25D366] shrink-0" />
+                  <span>Share on WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={uploadingCloud}
+                  onClick={handleOptInCloudSave}
+                  className="w-full py-3 px-4 rounded-xl btn-festive-outline text-xs sm:text-sm flex items-center justify-center gap-1.5"
+                  title="Optional: Upload final composition to Supabase Storage"
+                >
+                  <Cloud className="w-4 h-4 text-[#FFD700] shrink-0" />
+                  <span>{uploadingCloud ? 'Uploading...' : 'Opt-In Cloud Link'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* EDITING CONTROLS SECTION: Order 2 on Mobile (Below Frame), Order 1 (Left 40%) on Desktop */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="order-2 lg:order-1 w-full lg:w-[42%] glass-card ornate-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-5 max-w-xl mx-auto lg:max-w-none"
         >
           {/* Privacy Assurance Banner */}
-          <div className="p-3.5 rounded-2xl bg-[#0D0618]/85 border border-[#FFD700]/35 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-[#FFD700] shrink-0 mt-0.5" />
-            <p className="text-xs text-[#FFF4DC]/85 leading-relaxed">
+          <div className="p-3 rounded-xl bg-[#0D0618]/85 border border-[#FFD700]/35 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFD700] shrink-0 mt-0.5" />
+            <p className="text-[11px] sm:text-xs text-[#FFF4DC]/85 leading-relaxed">
               <strong className="text-[#FFD700]">Privacy First:</strong> Your photos are processed
-              100% locally inside your browser. Private photos are never uploaded to Supabase unless
-              you explicitly click &ldquo;Opt-In Cloud Link&rdquo;.
+              100% locally inside your browser and never uploaded unless you click Opt-In Cloud Link.
             </p>
           </div>
 
           {/* 1. Upload User Photo */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-2.5">
-              1. Upload Your Photo (JPG, PNG, WEBP • Max 8MB)
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-2">
+              1. Upload Your Photo (JPG, PNG, WEBP)
             </label>
             <input
               ref={fileInputRef}
@@ -366,51 +467,56 @@ export default function PhotoFrameMaker() {
               onChange={handleFileChange}
               className="hidden"
             />
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-3.5 px-5 rounded-2xl btn-royal-gold text-sm flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl btn-royal-gold text-xs sm:text-sm flex items-center justify-center gap-2"
               >
-                <Upload className="w-4 h-4" />
-                <span>{imageName ? `Change Photo (${imageName.slice(0, 18)})` : 'Choose Photo From Device'}</span>
+                <Upload className="w-4 h-4 shrink-0" />
+                <span className="truncate">
+                  {imageName ? `Change (${imageName.slice(0, 14)})` : 'Choose Photo'}
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={handleLoadSamplePortrait}
-                className="py-3.5 px-5 rounded-2xl btn-festive-outline text-xs sm:text-sm flex items-center justify-center gap-2"
+                className="w-full sm:w-auto py-3 px-4 rounded-xl btn-festive-outline text-xs flex items-center justify-center gap-1.5"
               >
-                <ImageIcon className="w-4 h-4 text-[#FFD700]" />
-                <span>Use Sample Portrait</span>
+                <ImageIcon className="w-4 h-4 text-[#FFD700] shrink-0" />
+                <span>Sample Portrait</span>
               </button>
             </div>
           </div>
 
           {/* 2. Choose from 6 Diwali Frame Templates */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-2.5">
-              2. Select Royal Diwali Frame (6 Templates)
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-2">
+              2. Select Diwali Frame (6 Templates)
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               {SIX_FRAME_TEMPLATES.map((tpl) => {
                 const isSelected = frameId === tpl.id;
                 return (
                   <button
                     key={tpl.id}
                     type="button"
-                    onClick={() => setFrameId(tpl.id)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all bg-gradient-to-br ${tpl.previewBg} ${
+                    onClick={() => {
+                      setFrameId(tpl.id);
+                      soundManager.playDiyaLightSound();
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all bg-gradient-to-br ${tpl.previewBg} ${
                       isSelected
-                        ? 'border-[#FFD700] ring-2 ring-[#FFD700]/55 shadow-[0_0_20px_rgba(255,215,0,0.3)]'
+                        ? 'border-[#FFD700] ring-2 ring-[#FFD700]/55 shadow-[0_0_16px_rgba(255,215,0,0.3)]'
                         : 'border-[#FFD700]/25 opacity-85 hover:opacity-100'
                     }`}
                   >
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/40 text-[#FFD700] mb-1.5">
+                    <span className="inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/40 text-[#FFD700] mb-1">
                       {tpl.badge}
                     </span>
-                    <p className="text-xs font-bold text-[#FFF4DC]">{tpl.name}</p>
-                    <p className="text-[11px] text-[#FFF4DC]/70 mt-0.5">{tpl.subtitle}</p>
+                    <p className="text-xs font-bold text-[#FFF4DC] leading-snug">{tpl.name}</p>
+                    <p className="text-[10px] text-[#FFF4DC]/70 mt-0.5 line-clamp-1">{tpl.subtitle}</p>
                   </button>
                 );
               })}
@@ -418,11 +524,11 @@ export default function PhotoFrameMaker() {
           </div>
 
           {/* 3. Zoom, Rotate & Pan Controls */}
-          <div className="p-4 rounded-2xl bg-[#0D0618]/70 border border-[#FFD700]/25 space-y-4">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-[#0D0618]/75 border border-[#FFD700]/25 space-y-3.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-[#FFD700] flex items-center gap-1.5">
-                <Move className="w-4 h-4" />
-                <span>3. Zoom, Crop &amp; Position</span>
+                <Move className="w-4 h-4 shrink-0" />
+                <span>3. Zoom &amp; Rotate</span>
               </span>
               <button
                 type="button"
@@ -430,11 +536,11 @@ export default function PhotoFrameMaker() {
                 className="text-xs text-[#FFF4DC]/75 hover:text-[#FFD700] flex items-center gap-1"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                <span>Reset Position</span>
+                <span>Reset</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-xs text-[#FFF4DC]/85 mb-1">
                   <span className="flex items-center gap-1">
@@ -450,7 +556,7 @@ export default function PhotoFrameMaker() {
                   value={zoom}
                   onChange={(e) => setZoom(parseFloat(e.target.value))}
                   aria-label="Photo Zoom Scale"
-                  className="w-full accent-[#FFD700] cursor-pointer"
+                  className="w-full h-2 accent-[#FFD700] cursor-pointer"
                 />
               </div>
 
@@ -469,22 +575,18 @@ export default function PhotoFrameMaker() {
                   value={rotation}
                   onChange={(e) => setRotation(parseInt(e.target.value, 10))}
                   aria-label="Photo Rotation Angle"
-                  className="w-full accent-[#FFD700] cursor-pointer"
+                  className="w-full h-2 accent-[#FFD700] cursor-pointer"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-[#FFF4DC]/65">
-              💡 Tip: Drag directly on the preview canvas on the right to pan your photo inside the
-              frame!
-            </p>
           </div>
 
           {/* 4. Festive Borders, Diyas & Custom Greeting Text */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div>
               <label
                 htmlFor="frame-greeting-input"
-                className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-1.5"
+                className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-1"
               >
                 4. Frame Greeting Headline
               </label>
@@ -500,7 +602,7 @@ export default function PhotoFrameMaker() {
             <div>
               <label
                 htmlFor="frame-subtext-input"
-                className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-1.5"
+                className="block text-xs font-bold uppercase tracking-wider text-[#FFD700] mb-1"
               >
                 5. Subtitle Blessing
               </label>
@@ -516,23 +618,23 @@ export default function PhotoFrameMaker() {
           </div>
 
           {/* Toggles for Festive Border & Decorative Diyas */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => setShowFestiveBorder((p) => !p)}
-              className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all ${
+              className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
                 showFestiveBorder
                   ? 'bg-[#FFD700]/20 border-[#FFD700] text-[#FFD700]'
                   : 'bg-[#0D0618]/70 border-[#FFD700]/25 text-[#FFF4DC]/65'
               }`}
             >
-              {showFestiveBorder ? '✓ Golden Zari Border On' : '+ Add Golden Zari Border'}
+              {showFestiveBorder ? '✓ Golden Border On' : '+ Add Golden Border'}
             </button>
 
             <button
               type="button"
               onClick={() => setShowCornerDiyas((p) => !p)}
-              className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all ${
+              className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
                 showCornerDiyas
                   ? 'bg-[#FFD700]/20 border-[#FFD700] text-[#FFD700]'
                   : 'bg-[#0D0618]/70 border-[#FFD700]/25 text-[#FFF4DC]/65'
@@ -542,85 +644,7 @@ export default function PhotoFrameMaker() {
             </button>
           </div>
         </motion.div>
-
-        {/* RIGHT COLUMN: Interactive Canvas Preview & Download (5 cols) */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-5 lg:sticky lg:top-24"
-        >
-          <div className="glass-card ornate-border rounded-3xl p-5 sm:p-6">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FFD700] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" />
-                <span>Interactive Frame Canvas (Drag to Pan)</span>
-              </span>
-              <span className="text-[11px] text-[#FFF4DC]/65">1080 × 1080 PNG</span>
-            </div>
-
-            <div
-              onMouseDown={handlePointerDown}
-              onMouseMove={handlePointerMove}
-              onMouseUp={handlePointerUp}
-              onMouseLeave={handlePointerUp}
-              onTouchStart={handlePointerDown}
-              onTouchMove={handlePointerMove}
-              onTouchEnd={handlePointerUp}
-              className={`relative rounded-2xl overflow-hidden border-2 border-[#FFD700]/55 bg-[#0D0618] aspect-square select-none ${
-                isDragging ? 'cursor-grabbing' : 'cursor-grab'
-              }`}
-            >
-              <canvas
-                ref={canvasRef}
-                className="w-full h-full object-contain block pointer-events-none"
-                aria-label="Diwali Framed Photo Canvas"
-              />
-            </div>
-
-            {/* Export & Share Buttons */}
-            <div className="mt-5 space-y-3">
-              <button
-                type="button"
-                onClick={handleDownloadFramedPhoto}
-                className="w-full py-3.5 px-5 rounded-2xl btn-royal-gold text-sm sm:text-base flex items-center justify-center gap-2.5"
-              >
-                <Download className="w-5 h-5" />
-                <span>Download Framed Photo (PNG)</span>
-              </button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    trackAnalyticsEvent('whatsapp_share_frame', '/photo-frames');
-                    shareViaWhatsApp(
-                      `🪔✨ *${greetingText}* — ${subText}${
-                        cloudShareUrl ? `\n🖼️ View my framed photo: ${cloudShareUrl}` : ''
-                      }\n\n🌟 Create your own Diwali Photo Frame on DiwaliWala: https://diwaliwala.vercel.app/photo-frames`
-                    );
-                  }}
-                  className="py-3 px-4 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/60 text-[#FFF4DC] font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
-                >
-                  <Share2 className="w-4 h-4 text-[#25D366]" />
-                  <span>Share on WhatsApp</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={uploadingCloud}
-                  onClick={handleOptInCloudSave}
-                  className="py-3 px-4 rounded-xl btn-festive-outline text-xs sm:text-sm flex items-center justify-center gap-1.5"
-                  title="Optional: Upload final composition to Supabase Storage"
-                >
-                  <Cloud className="w-4 h-4 text-[#FFD700]" />
-                  <span>{uploadingCloud ? 'Uploading...' : 'Opt-In Cloud Link'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </div>
   );
 }
-

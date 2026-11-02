@@ -68,37 +68,37 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? 'bg-[#0D0618]/90 backdrop-blur-xl border-b border-[#FFD700]/30 shadow-[0_8px_32px_rgba(0,0,0,0.65)]'
-          : 'bg-gradient-to-b from-[#0D0618]/90 to-transparent border-b border-[#FFD700]/15'
+          ? 'bg-[#0D0618]/95 backdrop-blur-xl border-b border-[#FFD700]/30 shadow-[0_8px_32px_rgba(0,0,0,0.65)]'
+          : 'bg-[#0D0618]/85 backdrop-blur-md border-b border-[#FFD700]/15'
       }`}
     >
       <nav
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between"
+        className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2"
         aria-label="Main Navigation"
       >
         {/* Brand Logo: DiwaliWala 🪔 */}
         <Link
           to="/"
-          className="flex items-center gap-2.5 group focus:outline-none"
+          className="flex items-center gap-2 group focus:outline-none min-w-0 shrink-0"
           aria-label="DiwaliWala Home"
         >
-          <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-[#29104A]/80 border border-[#FFD700]/45 shadow-[0_0_20px_rgba(255,215,0,0.25)] group-hover:border-[#FFD700] transition-all">
-            <DiyaSvg size={34} lit />
+          <div className="relative flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#29104A]/80 border border-[#FFD700]/45 shadow-[0_0_20px_rgba(255,215,0,0.25)] group-hover:border-[#FFD700] transition-all shrink-0">
+            <DiyaSvg size={28} lit />
           </div>
-          <div>
-            <span className="font-display text-xl sm:text-2xl font-bold tracking-wide gold-gradient-text gold-glow-text flex items-center gap-1.5">
+          <div className="min-w-0">
+            <span className="font-display text-lg sm:text-2xl font-bold tracking-wide gold-gradient-text gold-glow-text flex items-center gap-1 truncate">
               DiwaliWala <span aria-hidden="true">🪔</span>
             </span>
-            <span className="block text-[10px] uppercase tracking-[0.22em] text-[#FFF4DC]/65 font-medium">
+            <span className="hidden sm:block text-[10px] uppercase tracking-[0.2em] text-[#FFF4DC]/65 font-medium">
               Festival of Lights
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-[#160B2D]/75 border border-[#FFD700]/25 rounded-full px-3 py-1.5 backdrop-blur-md">
+        <div className="hidden lg:flex items-center gap-1 bg-[#160B2D]/75 border border-[#FFD700]/25 rounded-full px-2.5 py-1.5 backdrop-blur-md">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
@@ -107,35 +107,35 @@ export default function Navbar() {
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  `flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                     isActive
                       ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-[#0D0618] shadow-[0_0_20px_rgba(255,215,0,0.45)]'
                       : 'text-[#FFF4DC]/85 hover:text-[#FFD700] hover:bg-[#29104A]/60'
                   }`
                 }
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{item.name}</span>
               </NavLink>
             );
           })}
         </div>
 
-        {/* Right Actions: Festive Music, Sound FX, Golden Sparkle Burst & Mobile Menu */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Right Actions: Festive Music, Sound FX, Sparkle & Mobile Hamburger */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={() => soundManager.toggleMusic()}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold border transition-all ${
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-full text-xs font-bold border transition-all ${
               soundState.musicEnabled
                 ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-[#0D0618] border-[#FFD700] shadow-[0_0_16px_rgba(255,215,0,0.45)]'
                 : 'bg-[#160B2D]/85 border-[#FFD700]/40 text-[#FFF4DC] hover:border-[#FFD700]'
             }`}
-            title="Toggle Ambient Diwali Raga Music"
+            title="Toggle Background Diwali DJ Song"
           >
-            <Music className="w-3.5 h-3.5" />
-            <span className="hidden xl:inline">
-              {soundState.musicEnabled ? 'Music: ON' : 'Festive Music'}
+            <Music className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden md:inline">
+              {soundState.musicEnabled ? 'DJ: ON' : 'Play DJ'}
             </span>
           </button>
 
@@ -160,43 +160,36 @@ export default function Navbar() {
           <button
             type="button"
             onClick={triggerFestiveShower}
-            className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs btn-festive-outline"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs btn-festive-outline"
             title="Shower Golden Blessings"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#FFD700]" />
-            <span>Shower Gold</span>
+            <span className="hidden xl:inline">Shower Gold</span>
           </button>
-
-          <Link
-            to="/wishes"
-            className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm btn-royal-gold"
-          >
-            <span>Create Wish</span>
-          </Link>
 
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
-            className="lg:hidden inline-flex items-center justify-center p-2.5 rounded-xl bg-[#29104A]/80 border border-[#FFD700]/40 text-[#FFD700] hover:bg-[#29104A] transition-colors"
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-xl bg-[#29104A]/85 border border-[#FFD700]/45 text-[#FFD700] hover:bg-[#29104A] transition-colors"
             aria-expanded={mobileOpen}
             aria-label="Toggle navigation menu"
           >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile Navigation Dropdown Drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="lg:hidden overflow-hidden bg-[#160B2D]/95 backdrop-blur-2xl border-b border-[#FFD700]/30"
+            transition={{ duration: 0.22 }}
+            className="lg:hidden overflow-hidden bg-[#160B2D]/98 backdrop-blur-2xl border-b border-[#FFD700]/35 shadow-2xl"
           >
-            <div className="px-4 pt-3 pb-6 space-y-2">
+            <div className="px-3 pt-2.5 pb-5 space-y-1.5 max-h-[calc(100vh-4.5rem)] overflow-y-auto">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -204,30 +197,43 @@ export default function Navbar() {
                     key={item.path}
                     to={item.path}
                     end={item.path === '/'}
+                    onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-xl text-base font-semibold transition-all ${
+                      `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                         isActive
                           ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-[#0D0618] shadow-lg'
                           : 'text-[#FFF4DC] hover:bg-[#29104A]/70 hover:text-[#FFD700]'
                       }`
                     }
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 shrink-0" />
                     <span>{item.name}</span>
                   </NavLink>
                 );
               })}
-              <div className="pt-3 flex gap-3">
+
+              <div className="pt-2.5 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundManager.toggleMusic();
+                  }}
+                  className="py-2.5 px-3 rounded-xl text-xs font-bold btn-festive-outline flex items-center justify-center gap-1.5"
+                >
+                  <Music className="w-3.5 h-3.5 text-[#FFD700]" />
+                  <span>{soundState.musicEnabled ? 'Pause DJ Song' : 'Play DJ Song'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
                     triggerFestiveShower();
                     setMobileOpen(false);
                   }}
-                  className="flex-1 py-3 rounded-xl text-sm btn-festive-outline flex items-center justify-center gap-2"
+                  className="py-2.5 px-3 rounded-xl text-xs font-bold btn-royal-gold flex items-center justify-center gap-1.5"
                 >
-                  <Sparkles className="w-4 h-4 text-[#FFD700]" />
-                  <span>Shower Blessings</span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Shower Gold</span>
                 </button>
               </div>
             </div>
@@ -237,4 +243,3 @@ export default function Navbar() {
     </header>
   );
 }
-

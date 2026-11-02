@@ -15,6 +15,17 @@ export default function BackgroundMusicPlayer() {
   useEffect(() => {
     let isMounted = true;
 
+    const tryAutoPlay = (player) => {
+      if (!player || userPausedRef.current) return;
+      try {
+        player.unMute?.();
+        player.setVolume?.(85);
+        player.playVideo?.();
+      } catch {
+        // Fallback if browser requires muted start first
+      }
+    };
+
     const initPlayer = () => {
       if (!window.YT || !window.YT.Player || playerRef.current) return;
 
@@ -39,13 +50,8 @@ export default function BackgroundMusicPlayer() {
           onReady: (event) => {
             if (!isMounted) return;
             setIsReady(true);
-            event.target.setVolume(85);
             soundManager.registerYouTubePlayer(event.target);
-            try {
-              event.target.playVideo();
-            } catch {
-              // Will auto-start on first user click
-            }
+            tryAutoPlay(event.target);
           },
           onStateChange: (event) => {
             if (!isMounted) return;
@@ -80,24 +86,37 @@ export default function BackgroundMusicPlayer() {
       };
     }
 
-    const handleFirstInteraction = () => {
-      if (userPausedRef.current) return;
+    // Ensure music starts immediately on first user arrival / gesture if browser blocked initial unmuted autoplay
+    const unlockEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'scroll'];
+
+    const removeUnlockListeners = () => {
+      unlockEvents.forEach((evt) => window.removeEventListener(evt, handleFirstArrivalUnlock));
+    };
+
+    function handleFirstArrivalUnlock() {
+      if (userPausedRef.current) {
+        removeUnlockListeners();
+        return;
+      }
       if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
         try {
           const state = playerRef.current.getPlayerState?.();
+          playerRef.current.unMute?.();
+          playerRef.current.setVolume?.(volume);
           if (state !== 1) {
-            playerRef.current.unMute?.();
-            playerRef.current.setVolume?.(volume);
             playerRef.current.playVideo();
+          } else {
+            removeUnlockListeners();
           }
         } catch {
           // Ignore
         }
       }
-    };
+    }
 
-    window.addEventListener('click', handleFirstInteraction, { once: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    unlockEvents.forEach((evt) =>
+      window.addEventListener(evt, handleFirstArrivalUnlock, { passive: true })
+    );
 
     const unsub = soundManager.subscribe(({ musicEnabled }) => {
       setIsPlaying(musicEnabled);
@@ -106,8 +125,7 @@ export default function BackgroundMusicPlayer() {
     return () => {
       isMounted = false;
       unsub();
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
+      removeUnlockListeners();
     };
   }, [volume]);
 
@@ -146,7 +164,7 @@ export default function BackgroundMusicPlayer() {
 
   return (
     <>
-      {/* Strictly Invisible Audio-Only YouTube Container (Never Shown on Screen) */}
+      {/* Strictly Invisible Audio-Only YouTube Container */}
       <div
         aria-hidden="true"
         className="w-0 h-0 opacity-0 pointer-events-none fixed -left-[9999px] -top-[9999px] overflow-hidden"
@@ -154,13 +172,13 @@ export default function BackgroundMusicPlayer() {
         <div id={containerId} />
       </div>
 
-      {/* Compact Audio-Only Pill Control (Bottom-Left) */}
-      <div className="fixed bottom-5 left-5 z-[80]">
-        <div className="glass-card rounded-full px-3.5 py-2 border border-[#FFD700]/55 shadow-[0_0_25px_rgba(255,215,0,0.28)] flex items-center gap-2.5">
+      {/* Responsive Audio-Only Pill Control (Bottom-Left) */}
+      <div className="fixed bottom-3 left-3 sm:bottom-5 sm:left-5 z-[80] max-w-[calc(100vw-1.5rem)]">
+        <div className="glass-card rounded-full px-3 py-1.5 sm:px-3.5 sm:py-2 border border-[#FFD700]/55 shadow-[0_0_25px_rgba(255,215,0,0.28)] flex items-center gap-2">
           <button
             type="button"
             onClick={handleTogglePlay}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 flex items-center justify-center transition-all ${
               isPlaying
                 ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-[#0D0618] shadow-[0_0_16px_#FFD700]'
                 : 'bg-[#29104A] text-[#FFD700] border border-[#FFD700]/40 hover:border-[#FFD700]'
@@ -168,26 +186,26 @@ export default function BackgroundMusicPlayer() {
             title={isPlaying ? 'Pause Diwali DJ Song' : 'Play Diwali DJ Song'}
             aria-label={isPlaying ? 'Pause Diwali DJ Song' : 'Play Diwali DJ Song'}
           >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            {isPlaying ? <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5" />}
           </button>
 
-          <div className="pr-1">
+          <div className="min-w-0 pr-1">
             <div className="flex items-center gap-1.5">
-              <Music className={`w-3.5 h-3.5 text-[#FFD700] ${isPlaying ? 'animate-bounce' : ''}`} />
-              <span className="text-xs font-bold text-[#FFD700] whitespace-nowrap">
+              <Music className={`w-3.5 h-3.5 text-[#FFD700] shrink-0 ${isPlaying ? 'animate-bounce' : ''}`} />
+              <span className="text-[11px] sm:text-xs font-bold text-[#FFD700] truncate">
                 Diwali DJ Song 2026
               </span>
             </div>
-            <span className="block text-[10px] text-[#FFF4DC]/75">
+            <span className="block text-[9px] sm:text-[10px] text-[#FFF4DC]/75 truncate">
               {isPlaying
-                ? '🎧 Background Audio Playing...'
+                ? '🎧 Playing Background Music'
                 : isReady
-                ? 'Click Play for Background Audio'
-                : 'Loading Audio...'}
+                ? 'Tap Anywhere to Start Music'
+                : 'Starting Festive Music...'}
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 pl-1 border-l border-[#FFD700]/25">
+          <div className="hidden md:flex items-center gap-1.5 pl-1 border-l border-[#FFD700]/25">
             {volume === 0 ? (
               <VolumeX className="w-3.5 h-3.5 text-[#FFF4DC]/50" />
             ) : (
