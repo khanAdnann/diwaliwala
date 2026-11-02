@@ -36,6 +36,7 @@ export default function FireworksSimulator() {
   const canvasRef = useRef(null);
   const rocketsRef = useRef([]);
   const particlesRef = useRef([]);
+  const isMobileRef = useRef(typeof window !== 'undefined' && window.innerWidth < 768);
   const { addToast } = useToast();
 
   const [mode, setMode] = useState('auto');
@@ -56,7 +57,16 @@ export default function FireworksSimulator() {
     trackAnalyticsEvent('page_view_fireworks', '/fireworks');
   }, []);
 
+  // High-performance explosion generator with mobile-adaptive particle counts
   const createExplosion = useCallback((x, y, forcedPattern = null) => {
+    const isMobile = isMobileRef.current;
+    const maxPool = isMobile ? 220 : 480;
+
+    // Trim oldest particles if pool is near capacity to guarantee 60FPS on phones
+    if (particlesRef.current.length > maxPool) {
+      particlesRef.current.length = maxPool;
+    }
+
     const paletteObj =
       COLOR_MODES.find((c) => c.id === colorModeRef.current) || COLOR_MODES[0];
     const palette = paletteObj.colors;
@@ -65,34 +75,40 @@ export default function FireworksSimulator() {
         ? ['sphere', 'ring', 'willow', 'heart', 'star'][Math.floor(Math.random() * 5)]
         : forcedPattern || patternRef.current;
 
-    const count = activePattern === 'willow' ? 85 : 70;
+    const count = isMobile
+      ? activePattern === 'willow'
+        ? 42
+        : 36
+      : activePattern === 'willow'
+      ? 72
+      : 60;
 
     for (let i = 0; i < count; i += 1) {
       const color = palette[i % palette.length];
       let vx = 0;
       let vy = 0;
       let gravity = 0.055;
-      let drag = 0.982;
-      let decay = Math.random() * 0.012 + 0.01;
+      let drag = 0.98;
+      let decay = isMobile ? Math.random() * 0.016 + 0.014 : Math.random() * 0.013 + 0.011;
 
       if (activePattern === 'sphere') {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5.5 + 1.4;
+        const speed = Math.random() * (isMobile ? 4.8 : 5.6) + 1.2;
         vx = Math.cos(angle) * speed;
         vy = Math.sin(angle) * speed;
       } else if (activePattern === 'ring') {
         const angle = (Math.PI * 2 * i) / count;
-        const ringSpeed = i % 2 === 0 ? 5.0 : 2.8;
+        const ringSpeed = i % 2 === 0 ? (isMobile ? 4.4 : 5.0) : 2.6;
         vx = Math.cos(angle) * ringSpeed;
         vy = Math.sin(angle) * ringSpeed;
       } else if (activePattern === 'willow') {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4.0 + 0.8;
+        const speed = Math.random() * 3.8 + 0.8;
         vx = Math.cos(angle) * speed;
         vy = Math.sin(angle) * speed;
-        gravity = 0.085;
-        drag = 0.975;
-        decay = 0.008;
+        gravity = 0.08;
+        drag = 0.974;
+        decay = isMobile ? 0.012 : 0.009;
       } else if (activePattern === 'heart') {
         const t = (Math.PI * 2 * i) / count;
         const hx = 16 * Math.pow(Math.sin(t), 3);
@@ -102,13 +118,14 @@ export default function FireworksSimulator() {
           2 * Math.cos(3 * t) -
           Math.cos(4 * t)
         );
-        vx = hx * 0.26 + (Math.random() - 0.5) * 0.4;
-        vy = hy * 0.26 + (Math.random() - 0.5) * 0.4;
+        const scale = isMobile ? 0.22 : 0.26;
+        vx = hx * scale + (Math.random() - 0.5) * 0.35;
+        vy = hy * scale + (Math.random() - 0.5) * 0.35;
       } else if (activePattern === 'star') {
         const points = 5;
         const angle = (Math.PI * 2 * i) / count;
         const starFactor = 1 + 0.55 * Math.cos(points * angle);
-        const speed = 3.6 * starFactor;
+        const speed = (isMobile ? 3.1 : 3.6) * starFactor;
         vx = Math.cos(angle) * speed;
         vy = Math.sin(angle) * speed;
       }
@@ -125,8 +142,28 @@ export default function FireworksSimulator() {
         decay,
         gravity,
         drag,
-        radius: Math.random() * 2.2 + 1.3,
-        sparkle: Math.random() > 0.45,
+        radius: isMobile ? 2.0 : 2.2,
+      });
+    }
+
+    // Core Golden Sparkles
+    const coreCount = isMobile ? 8 : 14;
+    for (let s = 0; s < coreCount; s += 1) {
+      const a = (Math.PI * 2 * s) / coreCount;
+      const sp = Math.random() * 2.0 + 0.5;
+      particlesRef.current.push({
+        x,
+        y,
+        prevX: x,
+        prevY: y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        color: '#FFF4DC',
+        alpha: 1,
+        decay: 0.028,
+        gravity: 0.03,
+        drag: 0.98,
+        radius: 1.8,
       });
     }
 
@@ -140,11 +177,13 @@ export default function FireworksSimulator() {
   const launchRocket = useCallback((targetX, targetY) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    if (rocketsRef.current.length > 10) return;
+
     const startX = canvas.width * 0.2 + Math.random() * (canvas.width * 0.6);
     const startY = canvas.height;
     const angle = Math.atan2(targetY - startY, targetX - startX);
     const distance = Math.hypot(targetX - startX, targetY - startY);
-    const speed = Math.max(11, Math.min(17, distance / 26));
+    const speed = Math.max(12, Math.min(18, distance / 24));
 
     if (soundRef.current) {
       soundManager.playRocketLaunchSound();
@@ -159,65 +198,77 @@ export default function FireworksSimulator() {
       targetY,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      color: '#FFD700',
     });
   }, []);
 
+  // Ultra-fast 60FPS Canvas Render Loop (No shadowBlur, additive 'lighter' blending, O(1) swap-and-pop)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     let animId;
 
     const updateCanvasSize = () => {
       if (!canvas || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
+      isMobileRef.current = window.innerWidth < 768;
       canvas.width = rect.width || window.innerWidth;
-      canvas.height = rect.height || 560;
+      canvas.height = rect.height || 520;
+      ctx.fillStyle = '#0D0618';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     };
     updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
+    window.addEventListener('resize', updateCanvasSize, { passive: true });
 
-    setTimeout(() => {
+    // Initial launch
+    const initTimer = setTimeout(() => {
       if (!canvasRef.current) return;
       const w = canvasRef.current.width;
       const h = canvasRef.current.height;
-      launchRocket(w * 0.3, h * 0.32);
-      launchRocket(w * 0.5, h * 0.24);
-      launchRocket(w * 0.7, h * 0.32);
-    }, 250);
+      launchRocket(w * 0.35, h * 0.3);
+      launchRocket(w * 0.65, h * 0.26);
+    }, 200);
 
     const renderLoop = () => {
-      ctx.fillStyle = 'rgba(13, 6, 24, 0.22)';
+      // 1. Fast trail fade using source-over
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(13, 6, 24, 0.26)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      for (let r = rocketsRef.current.length - 1; r >= 0; r -= 1) {
-        const rk = rocketsRef.current[r];
+      // 2. Switch to hardware-accelerated additive glow ('lighter') — 0% blur cost!
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+
+      // 3. Update & Draw Rockets
+      const rockets = rocketsRef.current;
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 2.5;
+      for (let r = rockets.length - 1; r >= 0; r -= 1) {
+        const rk = rockets[r];
         rk.prevX = rk.x;
         rk.prevY = rk.y;
         rk.x += rk.vx;
         rk.y += rk.vy;
 
-        ctx.save();
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 2.6;
-        ctx.shadowColor = '#FF8C00';
-        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.95;
         ctx.beginPath();
         ctx.moveTo(rk.prevX, rk.prevY);
         ctx.lineTo(rk.x, rk.y);
         ctx.stroke();
-        ctx.restore();
 
         const distToTarget = Math.hypot(rk.targetX - rk.x, rk.targetY - rk.y);
-        if (distToTarget < 18 || rk.y <= rk.targetY || rk.vy >= 0) {
+        if (distToTarget < 20 || rk.y <= rk.targetY || rk.vy >= 0) {
           createExplosion(rk.x, rk.y);
-          rocketsRef.current.splice(r, 1);
+          rockets[r] = rockets[rockets.length - 1];
+          rockets.pop();
         }
       }
 
-      for (let p = particlesRef.current.length - 1; p >= 0; p -= 1) {
-        const pt = particlesRef.current[p];
+      // 4. Update & Draw Particles (O(1) swap-and-pop removal)
+      const particles = particlesRef.current;
+      for (let p = particles.length - 1; p >= 0; p -= 1) {
+        const pt = particles[p];
         pt.prevX = pt.x;
         pt.prevY = pt.y;
         pt.vx *= pt.drag;
@@ -227,26 +278,19 @@ export default function FireworksSimulator() {
         pt.y += pt.vy;
         pt.alpha -= pt.decay;
 
-        if (pt.alpha <= 0.02) {
-          particlesRef.current.splice(p, 1);
+        if (pt.alpha <= 0.03) {
+          particles[p] = particles[particles.length - 1];
+          particles.pop();
           continue;
         }
 
-        ctx.save();
-        const flickerAlpha =
-          pt.sparkle && Math.random() > 0.65 ? Math.min(1, pt.alpha * 1.35) : pt.alpha;
-        ctx.globalAlpha = Math.max(0, flickerAlpha);
+        ctx.globalAlpha = pt.alpha;
         ctx.strokeStyle = pt.color;
-        ctx.fillStyle = pt.color;
         ctx.lineWidth = pt.radius;
-        ctx.shadowColor = pt.color;
-        ctx.shadowBlur = 8;
-
         ctx.beginPath();
         ctx.moveTo(pt.prevX, pt.prevY);
         ctx.lineTo(pt.x, pt.y);
         ctx.stroke();
-        ctx.restore();
       }
 
       animId = window.requestAnimationFrame(renderLoop);
@@ -255,20 +299,23 @@ export default function FireworksSimulator() {
     animId = window.requestAnimationFrame(renderLoop);
 
     return () => {
+      clearTimeout(initTimer);
       window.removeEventListener('resize', updateCanvasSize);
       window.cancelAnimationFrame(animId);
     };
   }, [createExplosion, launchRocket]);
 
+  // Adaptive auto-launch interval (slower on mobile to keep frame times low)
   useEffect(() => {
     if (mode !== 'auto') return undefined;
+    const delay = isMobileRef.current ? 1200 : 920;
     const interval = setInterval(() => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas || document.hidden) return;
       const tx = canvas.width * 0.15 + Math.random() * (canvas.width * 0.7);
-      const ty = canvas.height * 0.14 + Math.random() * (canvas.height * 0.42);
+      const ty = canvas.height * 0.15 + Math.random() * (canvas.height * 0.4);
       launchRocket(tx, ty);
-    }, 950);
+    }, delay);
 
     return () => clearInterval(interval);
   }, [mode, launchRocket]);
@@ -288,13 +335,14 @@ export default function FireworksSimulator() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     trackAnalyticsEvent('fireworks_grand_finale', '/fireworks');
-    for (let i = 0; i < 8; i += 1) {
+    const rocketCount = isMobileRef.current ? 5 : 8;
+    for (let i = 0; i < rocketCount; i += 1) {
       setTimeout(() => {
         if (!canvasRef.current) return;
-        const tx = canvas.width * (0.12 + (i * 0.76) / 7);
+        const tx = canvas.width * (0.15 + (i * 0.7) / Math.max(1, rocketCount - 1));
         const ty = canvas.height * (0.18 + (i % 3) * 0.1);
         launchRocket(tx, ty);
-      }, i * 110);
+      }, i * 130);
     }
   };
 
@@ -354,17 +402,17 @@ export default function FireworksSimulator() {
           className="w-full md:w-auto px-5 py-3 rounded-xl sm:rounded-2xl btn-royal-gold text-xs sm:text-sm flex items-center justify-center gap-2"
         >
           <Sparkles className="w-4 h-4 shrink-0" />
-          <span>Launch Grand Finale (8x)</span>
+          <span>Launch Grand Finale</span>
         </button>
       </div>
 
       {/* Main Interactive Fireworks Stage Container */}
       <div
         ref={containerRef}
-        className={`relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFD700]/55 bg-[#0D0618] shadow-[0_0_50px_rgba(255,140,0,0.2)] flex flex-col justify-between ${
+        className={`relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFD700]/55 bg-[#0D0618] shadow-[0_0_40px_rgba(255,140,0,0.18)] flex flex-col justify-between ${
           isFullscreen
             ? 'w-screen h-screen rounded-none border-0'
-            : 'h-[480px] sm:h-[600px] lg:h-[680px]'
+            : 'h-[460px] sm:h-[600px] lg:h-[680px]'
         }`}
       >
         <canvas
@@ -372,12 +420,12 @@ export default function FireworksSimulator() {
           onMouseDown={handleCanvasPointerDown}
           onTouchStart={handleCanvasPointerDown}
           className="absolute inset-0 w-full h-full cursor-crosshair block touch-none"
-          aria-label="Interactive Fireworks Night Sky Canvas — Click anywhere to launch fireworks"
+          aria-label="Interactive Fireworks Night Sky Canvas — Tap anywhere to launch fireworks"
         />
 
         {/* Top Overlay HUD Bar */}
         <div className="relative z-10 p-2.5 sm:p-4 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-          <div className="pointer-events-auto inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0D0618]/85 backdrop-blur-md border border-[#FFD700]/35 text-[11px] sm:text-xs text-[#FFF4DC]">
+          <div className="pointer-events-auto inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0D0618]/85 border border-[#FFD700]/35 text-[11px] sm:text-xs text-[#FFF4DC]">
             <span className="flex items-center gap-1 font-bold text-[#FFD700]">
               <Sparkles className="w-3.5 h-3.5" />
               {burstCount}
@@ -386,7 +434,6 @@ export default function FireworksSimulator() {
             <span>Tap Sky!</span>
           </div>
 
-          {/* Right HUD Controls */}
           <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               type="button"
@@ -431,8 +478,8 @@ export default function FireworksSimulator() {
             <button
               type="button"
               onClick={() => {
-                rocketsRef.current = [];
-                particlesRef.current = [];
+                rocketsRef.current.length = 0;
+                particlesRef.current.length = 0;
               }}
               className="p-1.5 sm:p-2 rounded-xl bg-[#0D0618]/85 border border-[#FFD700]/35 text-[#FFF4DC]/75 hover:text-[#FFD700]"
               title="Clear Sky"
